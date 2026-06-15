@@ -335,20 +335,30 @@ async function generate(){
   ...
 ]
 
+## JSON出力の絶対ルール（最重要）
+- htmlフィールド内の文字列はすべてJSONエスケープする
+- 二重引用符 " → \"
+- バックスラッシュ \\ → \\\\
+- 改行 → \\n
+- htmlフィールド内でstyle属性に二重引用符を使わず、シングルクォート ' を使う
+- 例：style='color:red;font-size:48px' ← 正しい
+- 例：style="color:red" ← JSON内では使用禁止
+
 ## HTMLスライドのルール
-- 1280×720px固定（style="width:1280px;height:720px;overflow:hidden;position:relative"）
-- フォント: <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');*{font-family:"Noto Sans JP",sans-serif}</style>
+- 外側のdivに style='width:1280px;height:720px;overflow:hidden;position:relative'
+- フォント: <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');*{font-family:"Noto Sans JP",sans-serif;box-sizing:border-box;margin:0;padding:0}</style>
 - スライドごとにレイアウトを変える（タイトル/2カラム/数字強調/カードグリッド/まとめ）
 - 背景色: ${T.bg}、テキスト: ${T.text}、アクセント: ${T.accent}
 - 見出し48px、本文20px、余白60px、スライド番号を右下に表示
 - 1スライド3〜4ポイントまで
+- JavaScript不使用（HTMLとCSSのみ）
 
 ## 構成（${slideCount}枚）
 - 1枚目: タイトルスライド
 - 最後: まとめ
 - 中間: 多様なレイアウト
 
-JSONのみ返す。`;
+JSONのみ返す。説明文なし。`;
 
   try{
     setProgress(20);
@@ -383,11 +393,35 @@ JSONのみ返す。`;
     setProgress(85);
     setStatus('loading','スライドを構築中...',true);
 
-    // JSON抽出
-    const match=raw.match(/\[[\s\S]*\]/);
+    // JSON抽出・修復
+    let match=raw.match(/\[[\s\S]*\]/);
     if(!match)throw new Error('スライドデータの解析に失敗しました。');
 
-    const parsed=JSON.parse(match[0]);
+    let jsonStr=match[0];
+
+    // よくある破損パターンを修正
+    // 1. HTMLの二重引用符をエスケープ
+    // 2. 不正な改行を除去
+    let parsed;
+    try{
+      parsed=JSON.parse(jsonStr);
+    }catch(e1){
+      // 修復試行：htmlフィールドの中身を個別に取り出す
+      try{
+        const slides=[];
+        const slidePattern=/\{\s*"id"\s*:\s*(\d+)\s*,\s*"title"\s*:\s*"([^"]*?)"\s*,\s*"html"\s*:\s*"([\s\S]*?)"\s*\}/g;
+        let m;
+        // より安全な方法：RAWテキストから直接パース
+        const cleanJson=jsonStr
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
+          .replace(/\\'/g,"'");
+        parsed=JSON.parse(cleanJson);
+      }catch(e2){
+        // 最終手段：Claudeに再生成を依頼するメッセージ
+        throw new Error('スライドデータの解析に失敗しました。もう一度「スライドを生成する」を押してください。');
+      }
+    }
+
     slidesHtml=parsed;
     currentSlide=0;
 
