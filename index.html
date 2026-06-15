@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -545,6 +546,7 @@ async function generateSlides() {
   "slides": [
     {
       "type": "section",
+      "layout": "bullets",
       "heading": "セクションタイトル",
       "points": ["ポイント1", "ポイント2", "ポイント3"],
       "note": "発表者向けメモ（任意）"
@@ -557,10 +559,20 @@ typeは以下から選択:
 - "section": 通常コンテンツスライド
 - "summary": まとめスライド（最後の1枚）
 
+layoutは内容に応じて以下から最適なものを選択:
+- "bullets": 箇条書き（一般的な情報・説明）
+- "numbered": 番号付きステップ（手順・プロセス・優先順位）
+- "two_column": 2カラム（比較・対比・Before/After）
+- "highlight": 重要数字・KPI強調（数値・実績・目標）
+- "problem": 課題・リスク提示（問題点・懸念事項）
+- "action": アクションリスト（ToDo・担当者・次のステップ）
+
 ルール:
 - 目安枚数: ${slideCount}枚（タイトル含む）
 - トーン: ${toneDesc}
 - pointsは各スライド2〜5項目
+- layout="two_column"の場合はpointsを偶数個にする（左右に振り分ける）
+- layout="highlight"の場合はpointsの最初の要素を大きく強調する数値や短いフレーズにする
 - 見出しは15文字以内
 - 各ポイントは40文字以内
 - 日本語で出力
@@ -660,150 +672,354 @@ async function downloadPptx() {
     pres.layout = 'LAYOUT_16x9';
     pres.title = generatedSlides.title || 'プレゼンテーション';
 
-    // カラーパレット
     const C = {
       dark:    '1A1F2E',
       accent:  '2563EB',
-      accentL: 'DBEAFE',
+      accent2: '1E40AF',
       white:   'FFFFFF',
       gray1:   'F7F8FA',
       gray2:   'E2E6EA',
       muted:   '6B7280',
       text:    '1A1F2E',
+      red:     'DC2626',
+      red2:    'FEF2F2',
+      green:   '059669',
+      green2:  'ECFDF5',
+      orange:  'D97706',
+      orange2: 'FFFBEB',
+      teal:    '0D9488',
+      teal2:   'F0FDFA',
     };
+
+    // 共通ヘッダー描画
+    function drawHeader(slide, heading, idx, total, color) {
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0, y: 0, w: 10, h: 0.95,
+        fill: { color: color || C.dark }, line: { color: color || C.dark }
+      });
+      slide.addText(heading || '', {
+        x: 0.45, y: 0, w: 8.6, h: 0.95,
+        fontSize: 20, bold: true, color: C.white,
+        fontFace: 'Calibri', valign: 'middle', margin: 0
+      });
+      slide.addText(`${idx + 1} / ${total}`, {
+        x: 8.8, y: 0, w: 1.0, h: 0.95,
+        fontSize: 10, color: 'A0AEC0',
+        fontFace: 'Calibri', align: 'right', valign: 'middle', margin: 0
+      });
+    }
 
     const slides = generatedSlides.slides;
 
     slides.forEach((slideData, idx) => {
       const slide = pres.addSlide();
-      const isTitle = slideData.type === 'title' || idx === 0;
+      const isTitle   = slideData.type === 'title' || idx === 0;
       const isSummary = slideData.type === 'summary';
+      const layout    = slideData.layout || 'bullets';
+      const pts       = slideData.points || [];
 
+      // ════════════════════════════════
+      // タイトルスライド
+      // ════════════════════════════════
       if (isTitle) {
-        // ── タイトルスライド ──────────────────────
         slide.background = { color: C.dark };
 
-        // アクセント矩形（左）
+        // 右側アクセントブロック
         slide.addShape(pres.ShapeType.rect, {
-          x: 0.55, y: 1.8, w: 0.08, h: 1.5,
+          x: 7.2, y: 0, w: 2.8, h: 5.625,
           fill: { color: C.accent }, line: { color: C.accent }
+        });
+        // 斜めライン風の小さな矩形
+        slide.addShape(pres.ShapeType.rect, {
+          x: 6.9, y: 0, w: 0.18, h: 5.625,
+          fill: { color: '3B82F6' }, line: { color: '3B82F6' }
         });
 
         slide.addText(generatedSlides.title || 'プレゼンテーション', {
-          x: 0.8, y: 1.7, w: 8.4, h: 1.0,
-          fontSize: 34, bold: true, color: C.white,
+          x: 0.6, y: 1.5, w: 6.2, h: 1.6,
+          fontSize: 30, bold: true, color: C.white,
           fontFace: 'Calibri', valign: 'middle', margin: 0
         });
-
         slide.addText(generatedSlides.subtitle || '', {
-          x: 0.8, y: 2.8, w: 8.4, h: 0.55,
-          fontSize: 14, color: 'A0AEC0',
+          x: 0.6, y: 3.2, w: 6.2, h: 0.6,
+          fontSize: 13, color: '93C5FD',
           fontFace: 'Calibri', margin: 0
         });
-
-        // スライド番号ヒント
         slide.addText(`全${slides.length}枚`, {
-          x: 0.8, y: 4.8, w: 4, h: 0.4,
-          fontSize: 11, color: '4B5563', fontFace: 'Calibri', margin: 0
+          x: 0.6, y: 4.9, w: 3, h: 0.4,
+          fontSize: 10, color: '4B5563', fontFace: 'Calibri', margin: 0
         });
 
+      // ════════════════════════════════
+      // まとめスライド
+      // ════════════════════════════════
       } else if (isSummary) {
-        // ── まとめスライド ──────────────────────
-        slide.background = { color: C.accent };
+        slide.background = { color: C.gray1 };
+        drawHeader(slide, slideData.heading || 'まとめ', idx, slides.length, C.teal);
 
-        slide.addText(slideData.heading || 'まとめ', {
-          x: 0.6, y: 0.5, w: 8.8, h: 0.8,
-          fontSize: 28, bold: true, color: C.white,
-          fontFace: 'Calibri', margin: 0
-        });
-
-        const pts = (slideData.points || []);
-        pts.forEach((pt, i) => {
-          slide.addShape(pres.ShapeType.roundRect, {
-            x: 0.6, y: 1.5 + i * 0.9, w: 8.8, h: 0.72,
-            fill: { color: C.white, transparency: 15 },
-            line: { color: C.white, transparency: 50 },
-            rectRadius: 0.06
-          });
-          slide.addText(pt, {
-            x: 1.0, y: 1.55 + i * 0.9, w: 8.0, h: 0.62,
-            fontSize: 13, color: C.white, bold: false,
-            fontFace: 'Calibri', valign: 'middle', margin: 0
-          });
-          // 番号
-          slide.addText(String(i + 1), {
-            x: 0.62, y: 1.57 + i * 0.9, w: 0.3, h: 0.58,
-            fontSize: 11, bold: true, color: C.accent,
-            fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
-          });
-        });
-
-      } else {
-        // ── 通常コンテンツスライド ───────────────
-        slide.background = { color: C.white };
-
-        // ヘッダー帯
-        slide.addShape(pres.ShapeType.rect, {
-          x: 0, y: 0, w: 10, h: 1.05,
-          fill: { color: C.gray1 }, line: { color: C.gray2 }
-        });
-
-        slide.addText(slideData.heading || '', {
-          x: 0.5, y: 0.1, w: 8.5, h: 0.85,
-          fontSize: 22, bold: true, color: C.text,
-          fontFace: 'Calibri', valign: 'middle', margin: 0
-        });
-
-        // スライド番号
-        slide.addText(`${idx + 1} / ${slides.length}`, {
-          x: 8.8, y: 0.1, w: 1.0, h: 0.85,
-          fontSize: 10, color: C.muted,
-          fontFace: 'Calibri', align: 'right', valign: 'middle', margin: 0
-        });
-
-        // ポイントカード
-        const pts = (slideData.points || []);
-        const startY = 1.25;
-        const cardH = pts.length <= 3 ? 1.0 : 0.78;
-        const gap = 0.12;
+        const cols = pts.length <= 3 ? 1 : 2;
+        const perCol = Math.ceil(pts.length / cols);
+        const colW = cols === 1 ? 9.0 : 4.3;
 
         pts.forEach((pt, i) => {
-          const y = startY + i * (cardH + gap);
+          const col = cols === 2 ? Math.floor(i / perCol) : 0;
+          const row = i % perCol;
+          const x = 0.5 + col * 4.8;
+          const y = 1.1 + row * 1.2;
 
           slide.addShape(pres.ShapeType.roundRect, {
-            x: 0.5, y, w: 9.0, h: cardH,
-            fill: { color: C.gray1 },
-            line: { color: C.gray2 },
-            shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 90, opacity: 0.05 },
-            rectRadius: 0.08
+            x, y, w: colW, h: 1.0,
+            fill: { color: C.white },
+            line: { color: C.teal },
+            shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 90, opacity: 0.08 },
+            rectRadius: 0.1
           });
-
-          // アクセントドット
+          // 左側カラーバー代わりの丸
           slide.addShape(pres.ShapeType.ellipse, {
-            x: 0.78, y: y + cardH / 2 - 0.09,
-            w: 0.18, h: 0.18,
-            fill: { color: C.accent }, line: { color: C.accent }
+            x: x + 0.18, y: y + 0.35, w: 0.3, h: 0.3,
+            fill: { color: C.teal }, line: { color: C.teal }
           });
-
           slide.addText(pt, {
-            x: 1.1, y, w: 8.1, h: cardH,
-            fontSize: pts.length <= 3 ? 14 : 13,
-            color: C.text, fontFace: 'Calibri',
+            x: x + 0.6, y, w: colW - 0.7, h: 1.0,
+            fontSize: 12, color: C.text, fontFace: 'Calibri',
             valign: 'middle', margin: 0
           });
         });
 
-        // 発表者メモ
-        if (slideData.note) {
-          slide.addNotes(slideData.note);
-        }
+      // ════════════════════════════════
+      // 番号付きステップ (numbered)
+      // ════════════════════════════════
+      } else if (layout === 'numbered') {
+        slide.background = { color: C.white };
+        drawHeader(slide, slideData.heading, idx, slides.length, C.accent2);
+
+        const cardH = pts.length <= 3 ? 1.1 : 0.82;
+        const gap = 0.1;
+        pts.forEach((pt, i) => {
+          const y = 1.1 + i * (cardH + gap);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.5, y, w: 9.0, h: cardH,
+            fill: { color: C.gray1 }, line: { color: C.gray2 },
+            rectRadius: 0.1
+          });
+          // 番号バッジ
+          slide.addShape(pres.ShapeType.ellipse, {
+            x: 0.65, y: y + cardH/2 - 0.25, w: 0.5, h: 0.5,
+            fill: { color: C.accent2 }, line: { color: C.accent2 }
+          });
+          slide.addText(String(i + 1), {
+            x: 0.65, y: y + cardH/2 - 0.25, w: 0.5, h: 0.5,
+            fontSize: 13, bold: true, color: C.white,
+            fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+          });
+          slide.addText(pt, {
+            x: 1.35, y, w: 7.9, h: cardH,
+            fontSize: pts.length <= 3 ? 14 : 12, color: C.text,
+            fontFace: 'Calibri', valign: 'middle', margin: 0
+          });
+        });
+
+      // ════════════════════════════════
+      // 2カラム比較 (two_column)
+      // ════════════════════════════════
+      } else if (layout === 'two_column') {
+        slide.background = { color: C.white };
+        drawHeader(slide, slideData.heading, idx, slides.length, C.dark);
+
+        const half = Math.ceil(pts.length / 2);
+        const left  = pts.slice(0, half);
+        const right = pts.slice(half);
+
+        // 左ヘッダー
+        slide.addShape(pres.ShapeType.roundRect, {
+          x: 0.4, y: 1.05, w: 4.3, h: 0.45,
+          fill: { color: C.accent }, line: { color: C.accent }, rectRadius: 0.06
+        });
+        slide.addText('ポイントA', {
+          x: 0.4, y: 1.05, w: 4.3, h: 0.45,
+          fontSize: 11, bold: true, color: C.white,
+          fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+        });
+
+        // 右ヘッダー
+        slide.addShape(pres.ShapeType.roundRect, {
+          x: 5.3, y: 1.05, w: 4.3, h: 0.45,
+          fill: { color: C.teal }, line: { color: C.teal }, rectRadius: 0.06
+        });
+        slide.addText('ポイントB', {
+          x: 5.3, y: 1.05, w: 4.3, h: 0.45,
+          fontSize: 11, bold: true, color: C.white,
+          fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+        });
+
+        // 中央区切り線
+        slide.addShape(pres.ShapeType.rect, {
+          x: 4.9, y: 1.05, w: 0.2, h: 4.3,
+          fill: { color: C.gray2 }, line: { color: C.gray2 }
+        });
+
+        const rowH = 0.75;
+        left.forEach((pt, i) => {
+          const y = 1.65 + i * (rowH + 0.1);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.4, y, w: 4.3, h: rowH,
+            fill: { color: 'EFF6FF' }, line: { color: 'BFDBFE' }, rectRadius: 0.07
+          });
+          slide.addText(pt, {
+            x: 0.6, y, w: 4.0, h: rowH,
+            fontSize: 12, color: C.text, fontFace: 'Calibri',
+            valign: 'middle', margin: 0
+          });
+        });
+        right.forEach((pt, i) => {
+          const y = 1.65 + i * (rowH + 0.1);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 5.3, y, w: 4.3, h: rowH,
+            fill: { color: C.teal2 }, line: { color: '99F6E4' }, rectRadius: 0.07
+          });
+          slide.addText(pt, {
+            x: 5.5, y, w: 4.0, h: rowH,
+            fontSize: 12, color: C.text, fontFace: 'Calibri',
+            valign: 'middle', margin: 0
+          });
+        });
+
+      // ════════════════════════════════
+      // 数字・KPI強調 (highlight)
+      // ════════════════════════════════
+      } else if (layout === 'highlight') {
+        slide.background = { color: C.dark };
+        drawHeader(slide, slideData.heading, idx, slides.length, '0F172A');
+
+        // メイン数字・キーワード（1つ目のポイント）
+        slide.addShape(pres.ShapeType.roundRect, {
+          x: 2.5, y: 1.1, w: 5.0, h: 1.8,
+          fill: { color: C.accent }, line: { color: C.accent }, rectRadius: 0.15
+        });
+        slide.addText(pts[0] || '', {
+          x: 2.5, y: 1.1, w: 5.0, h: 1.8,
+          fontSize: 38, bold: true, color: C.white,
+          fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+        });
+
+        // サポートポイント（2つ目以降）
+        const rest = pts.slice(1);
+        const colW2 = rest.length > 0 ? (9.0 / rest.length) - 0.1 : 9.0;
+        rest.forEach((pt, i) => {
+          const x = 0.5 + i * (colW2 + 0.1);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x, y: 3.2, w: colW2, h: 1.9,
+            fill: { color: '1E293B' }, line: { color: '334155' }, rectRadius: 0.1
+          });
+          slide.addShape(pres.ShapeType.ellipse, {
+            x: x + colW2/2 - 0.12, y: 3.35, w: 0.24, h: 0.24,
+            fill: { color: '93C5FD' }, line: { color: '93C5FD' }
+          });
+          slide.addText(pt, {
+            x: x + 0.15, y: 3.65, w: colW2 - 0.3, h: 1.3,
+            fontSize: 11, color: 'CBD5E1', fontFace: 'Calibri',
+            align: 'center', valign: 'top', margin: 0
+          });
+        });
+
+      // ════════════════════════════════
+      // 課題・リスク (problem)
+      // ════════════════════════════════
+      } else if (layout === 'problem') {
+        slide.background = { color: C.white };
+        drawHeader(slide, slideData.heading, idx, slides.length, C.red);
+
+        const cardH2 = pts.length <= 3 ? 1.1 : 0.82;
+        const gap2 = 0.1;
+        pts.forEach((pt, i) => {
+          const y = 1.1 + i * (cardH2 + gap2);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.5, y, w: 9.0, h: cardH2,
+            fill: { color: C.red2 }, line: { color: 'FECACA' }, rectRadius: 0.1
+          });
+          // 警告アイコン代わりの三角
+          slide.addShape(pres.ShapeType.ellipse, {
+            x: 0.68, y: y + cardH2/2 - 0.2, w: 0.4, h: 0.4,
+            fill: { color: C.red }, line: { color: C.red }
+          });
+          slide.addText('!', {
+            x: 0.68, y: y + cardH2/2 - 0.2, w: 0.4, h: 0.4,
+            fontSize: 14, bold: true, color: C.white,
+            fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+          });
+          slide.addText(pt, {
+            x: 1.25, y, w: 8.0, h: cardH2,
+            fontSize: pts.length <= 3 ? 14 : 12, color: '7F1D1D',
+            fontFace: 'Calibri', valign: 'middle', margin: 0
+          });
+        });
+
+      // ════════════════════════════════
+      // アクションリスト (action)
+      // ════════════════════════════════
+      } else if (layout === 'action') {
+        slide.background = { color: C.white };
+        drawHeader(slide, slideData.heading, idx, slides.length, C.green);
+
+        const cardH3 = pts.length <= 3 ? 1.1 : 0.82;
+        const gap3 = 0.1;
+        pts.forEach((pt, i) => {
+          const y = 1.1 + i * (cardH3 + gap3);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.5, y, w: 9.0, h: cardH3,
+            fill: { color: C.green2 }, line: { color: '6EE7B7' }, rectRadius: 0.1
+          });
+          // チェックボックス風
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.65, y: y + cardH3/2 - 0.2, w: 0.4, h: 0.4,
+            fill: { color: C.green }, line: { color: C.green }, rectRadius: 0.04
+          });
+          slide.addText('→', {
+            x: 0.65, y: y + cardH3/2 - 0.2, w: 0.4, h: 0.4,
+            fontSize: 14, bold: true, color: C.white,
+            fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+          });
+          slide.addText(pt, {
+            x: 1.25, y, w: 8.0, h: cardH3,
+            fontSize: pts.length <= 3 ? 14 : 12, color: '064E3B',
+            fontFace: 'Calibri', valign: 'middle', margin: 0
+          });
+        });
+
+      // ════════════════════════════════
+      // 通常箇条書き (bullets / default)
+      // ════════════════════════════════
+      } else {
+        slide.background = { color: C.white };
+        drawHeader(slide, slideData.heading, idx, slides.length, C.accent);
+
+        const cardH4 = pts.length <= 3 ? 1.1 : 0.82;
+        const gap4 = 0.1;
+        pts.forEach((pt, i) => {
+          const y = 1.1 + i * (cardH4 + gap4);
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.5, y, w: 9.0, h: cardH4,
+            fill: { color: C.gray1 }, line: { color: C.gray2 },
+            shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 90, opacity: 0.05 },
+            rectRadius: 0.1
+          });
+          slide.addShape(pres.ShapeType.ellipse, {
+            x: 0.78, y: y + cardH4/2 - 0.1, w: 0.2, h: 0.2,
+            fill: { color: C.accent }, line: { color: C.accent }
+          });
+          slide.addText(pt, {
+            x: 1.15, y, w: 8.1, h: cardH4,
+            fontSize: pts.length <= 3 ? 14 : 12, color: C.text,
+            fontFace: 'Calibri', valign: 'middle', margin: 0
+          });
+        });
       }
+
+      if (slideData.note) slide.addNotes(slideData.note);
     });
 
-    // ファイル名
     const date = new Date().toLocaleDateString('ja-JP').replace(/\//g, '');
-    const fileName = `slides_${date}.pptx`;
-    await pres.writeFile({ fileName });
+    await pres.writeFile({ fileName: `slides_${date}.pptx` });
 
   } catch (err) {
     alert('PowerPointの生成に失敗しました: ' + err.message);
