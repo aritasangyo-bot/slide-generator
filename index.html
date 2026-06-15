@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スライドジェネレーター v2</title>
+<title>スライドジェネレーター</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#0F1117;
-  --surface:#1A1D27;
-  --border:#2A2D3E;
-  --ink:#F0F2FF;
-  --muted:#8B92B3;
-  --accent:#6366F1;
-  --accent2:#818CF8;
-  --success:#10B981;
-  --danger:#F43F5E;
-  --radius:14px;
+  --bg:#F7F8FA;
+  --surface:#FFFFFF;
+  --border:#E2E6EA;
+  --ink:#1A1F2E;
+  --muted:#6B7280;
+  --accent:#2563EB;
+  --accent-light:#EFF6FF;
+  --success:#059669;
+  --danger:#DC2626;
+  --radius:12px;
 }
 
 body{
@@ -31,167 +31,103 @@ body{
   flex-direction:column;
 }
 
-/* ── ヘッダー ── */
 header{
   background:var(--surface);
   border-bottom:1px solid var(--border);
   padding:0 40px;
-  height:58px;
+  height:60px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   position:sticky;top:0;z-index:100;
 }
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
-.logo-dot{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.badge{font-size:11px;padding:3px 10px;background:rgba(99,102,241,0.15);color:var(--accent2);border-radius:20px;border:1px solid rgba(99,102,241,0.3)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px}
+.badge{font-size:11px;font-weight:500;padding:3px 10px;background:var(--accent-light);color:var(--accent);border-radius:20px}
 
-/* ── メイン ── */
-main{flex:1;max-width:860px;width:100%;margin:0 auto;padding:36px 24px 80px;display:flex;flex-direction:column;gap:24px}
+main{flex:1;max-width:860px;width:100%;margin:0 auto;padding:40px 24px 80px;display:flex;flex-direction:column;gap:24px}
 
-/* ── カード ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px}
-.card-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-
-/* ── 入力 ── */
-.api-row{display:flex;gap:8px}
-.api-input{
-  flex:1;height:42px;border:1px solid var(--border);border-radius:9px;
-  padding:0 14px;font-size:13px;font-family:'Courier New',monospace;
-  color:var(--ink);background:#0F1117;outline:none;transition:border-color .15s;
-}
-.api-input:focus{border-color:var(--accent)}
-.toggle-btn{
-  height:42px;padding:0 14px;border:1px solid var(--border);border-radius:9px;
-  background:transparent;cursor:pointer;font-size:12px;color:var(--muted);white-space:nowrap;transition:all .15s;
-}
-.toggle-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 30px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.card-label{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
 
 .transcript-area{
   width:100%;min-height:200px;border:1px solid var(--border);border-radius:9px;
-  padding:14px;font-size:13px;line-height:1.8;font-family:'Noto Sans JP',sans-serif;
-  color:var(--ink);resize:vertical;outline:none;transition:border-color .15s;background:#0F1117;
+  padding:14px;font-size:14px;line-height:1.8;font-family:'Noto Sans JP',sans-serif;
+  color:var(--ink);resize:vertical;outline:none;transition:border-color .15s;background:var(--bg);
 }
-.transcript-area:focus{border-color:var(--accent)}
-.transcript-area::placeholder{color:#3A3D52}
+.transcript-area:focus{border-color:var(--accent);background:white}
+.transcript-area::placeholder{color:#B0B8C4}
 .char-count{text-align:right;font-size:11px;color:var(--muted);margin-top:6px}
 
 .options-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
 .option-group label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px}
 .option-select{
-  width:100%;height:38px;border:1px solid var(--border);border-radius:9px;
-  padding:0 12px;font-size:12px;color:var(--ink);background:#0F1117;outline:none;cursor:pointer;
+  width:100%;height:40px;border:1px solid var(--border);border-radius:9px;
+  padding:0 12px;font-size:13px;color:var(--ink);background:var(--bg);outline:none;cursor:pointer;
 }
 
-/* ── ボタン ── */
 .generate-btn{
-  width:100%;height:50px;background:var(--accent);color:white;border:none;
-  border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
+  width:100%;height:52px;background:var(--accent);color:white;border:none;
+  border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:background .15s,transform .1s;font-family:'Noto Sans JP',sans-serif;
+  transition:background .15s;font-family:'Noto Sans JP',sans-serif;
 }
-.generate-btn:hover:not(:disabled){background:#4F46E5}
-.generate-btn:disabled{background:#3730A3;opacity:0.6;cursor:not-allowed}
+.generate-btn:hover:not(:disabled){background:#1D4ED8}
+.generate-btn:disabled{background:#93C5FD;cursor:not-allowed}
 
-/* ── ステータス ── */
 .status-box{display:none;border-radius:10px;padding:14px 18px;font-size:13px;align-items:center;gap:12px}
 .status-box.show{display:flex}
-.status-box.loading{background:rgba(99,102,241,0.1);color:var(--accent2);border:1px solid rgba(99,102,241,0.2)}
-.status-box.success{background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.2)}
-.status-box.error{background:rgba(244,63,94,0.1);color:var(--danger);border:1px solid rgba(244,63,94,0.2)}
+.status-box.loading{background:var(--accent-light);color:var(--accent);border:1px solid #BFDBFE}
+.status-box.success{background:#ECFDF5;color:var(--success);border:1px solid #6EE7B7}
+.status-box.error{background:#FEF2F2;color:var(--danger);border:1px solid #FECACA}
 
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:16px;height:16px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 
-.progress-wrap{display:none;background:var(--border);border-radius:99px;height:3px;overflow:hidden}
+.progress-wrap{display:none;background:var(--border);border-radius:99px;height:4px;overflow:hidden}
 .progress-wrap.show{display:block}
-.progress-bar{height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease;width:0%}
+.progress-bar{height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease;width:0%}
 
-/* ── アクションボタン群 ── */
-.action-btns{display:none;gap:12px}
-.action-btns.show{display:flex}
-.btn-present{
-  flex:1;height:50px;background:var(--accent);color:white;border:none;
+/* 結果カード */
+.result-card{display:none;background:var(--surface);border:2px solid var(--success);border-radius:var(--radius);padding:28px 30px}
+.result-card.show{display:block}
+.result-title{font-size:14px;font-weight:700;color:var(--success);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+.result-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-open{
+  flex:1;min-width:200px;height:52px;background:var(--success);color:white;border:none;
   border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:background .15s;font-family:'Noto Sans JP',sans-serif;
+  text-decoration:none;transition:background .15s;font-family:'Noto Sans JP',sans-serif;
 }
-.btn-present:hover{background:#4F46E5}
-.btn-pdf{
-  flex:1;height:50px;background:transparent;color:var(--success);
-  border:1px solid var(--success);border-radius:10px;font-size:14px;font-weight:700;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .15s;font-family:'Noto Sans JP',sans-serif;
+.btn-open:hover{background:#047857}
+.btn-copy{
+  height:52px;padding:0 20px;background:transparent;color:var(--accent);
+  border:1px solid var(--accent);border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'Noto Sans JP',sans-serif;
 }
-.btn-pdf:hover{background:rgba(16,185,129,0.1)}
+.btn-copy:hover{background:var(--accent-light)}
 
-/* ══════════════════════════════════════════
-   プレゼンビューアー（モーダル）
-══════════════════════════════════════════ */
-#presenter{
-  display:none;position:fixed;inset:0;background:#000;z-index:1000;
-  flex-direction:column;
+.result-note{
+  margin-top:16px;padding:14px 16px;background:var(--bg);border-radius:8px;
+  font-size:12px;color:var(--muted);line-height:1.8;
 }
-#presenter.open{display:flex}
+.result-note strong{color:var(--ink)}
 
-.presenter-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 20px;background:#111;border-bottom:1px solid #222;flex-shrink:0;
-}
-.presenter-title{font-size:13px;color:#888}
-.presenter-controls{display:flex;align-items:center;gap:12px}
-.ctrl-btn{
-  width:36px;height:36px;border:1px solid #333;border-radius:8px;background:transparent;
-  color:#aaa;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;
-}
-.ctrl-btn:hover{background:#222;color:white;border-color:#555}
-.slide-counter{font-size:13px;color:#666;min-width:60px;text-align:center}
-
-.slide-viewport{
-  flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;
-  padding:20px;background:#0a0a0a;
-}
-
-#slideFrame{
-  width:100%;max-width:1200px;
-  aspect-ratio:16/9;
-  border:none;border-radius:8px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.8);
-  background:white;
-}
-
-.presenter-footer{
-  display:flex;justify-content:center;gap:6px;padding:12px;
-  background:#111;border-top:1px solid #222;flex-shrink:0;flex-wrap:wrap;
-}
-.thumb-btn{
-  width:10px;height:10px;border-radius:50%;background:#333;border:none;cursor:pointer;
-  transition:background .15s,transform .15s;
-}
-.thumb-btn.active{background:var(--accent);transform:scale(1.3)}
+footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);border-top:1px solid var(--border)}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">
-    <div class="logo-dot">✦</div>
-    スライドジェネレーター v2
+    <div class="logo-icon">✦</div>
+    スライドジェネレーター
   </div>
-  <span class="badge">HTML Slides</span>
+  <span class="badge">Googleスライド連携</span>
 </header>
 
 <main>
-
-  <div class="card">
-    <div class="card-label">API設定</div>
-    <div class="api-row">
-      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
-      <button class="toggle-btn" onclick="toggleApi()">表示</button>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:7px">APIキーはブラウザ内のみ使用。外部送信なし（Anthropic API除く）</div>
-  </div>
 
   <div class="card">
     <div class="card-label">会議の文字起こし</div>
@@ -204,385 +140,153 @@ main{flex:1;max-width:860px;width:100%;margin:0 auto;padding:36px 24px 80px;disp
 山田：来期は関東にも同様のアプローチを展開したいと思います。
 ..."></textarea>
     <div class="char-count"><span id="charCount">0</span> 文字</div>
+
     <div class="options-row">
       <div class="option-group">
         <label>スライド枚数</label>
         <select class="option-select" id="slideCount">
-          <option value="5" selected>5枚（簡潔）</option>
-          <option value="8">8枚（標準）</option>
+          <option value="5">5枚（簡潔）</option>
+          <option value="8" selected>8枚（標準）</option>
           <option value="12">12枚（詳細）</option>
         </select>
       </div>
       <div class="option-group">
-        <label>デザインテーマ</label>
-        <select class="option-select" id="theme">
-          <option value="dark">ダーク（モダン）</option>
-          <option value="light">ライト（清潔感）</option>
-          <option value="bold">ボールド（インパクト）</option>
+        <label>資料のトーン</label>
+        <select class="option-select" id="tone">
+          <option value="business">ビジネス（標準）</option>
+          <option value="formal">フォーマル（行政・報告）</option>
+          <option value="casual">カジュアル（社内共有）</option>
         </select>
       </div>
     </div>
   </div>
 
   <button class="generate-btn" id="generateBtn" onclick="generate()">
-    ✦ スライドを生成する
+    ✦ Googleスライドを自動生成する
   </button>
 
   <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
-  <div class="status-box" id="statusBox"><div class="spinner" id="statusIcon" style="display:none"></div><div id="statusText"></div></div>
+  <div class="status-box" id="statusBox">
+    <div class="spinner" id="spinner" style="display:none"></div>
+    <div id="statusText"></div>
+  </div>
 
-  <div class="action-btns" id="actionBtns">
-    <button class="btn-present" onclick="openPresenter()">▶ プレゼン開始</button>
-    <button class="btn-pdf" onclick="downloadPdf()">⬇ PDFで保存</button>
+  <div class="result-card" id="resultCard">
+    <div class="result-title">✓ スライドが生成されました</div>
+    <div class="result-btns">
+      <a class="btn-open" id="openBtn" href="#" target="_blank">
+        📊 Googleスライドを開く
+      </a>
+      <button class="btn-copy" onclick="copyUrl()">URLをコピー</button>
+    </div>
+    <div class="result-note">
+      <strong>編集・ダウンロード方法：</strong><br>
+      「Googleスライドを開く」→ 自由に編集できます<br>
+      PowerPointで保存：ファイル → ダウンロード → <strong>Microsoft PowerPoint (.pptx)</strong>
+    </div>
   </div>
 
 </main>
 
-<!-- プレゼンビューアー -->
-<div id="presenter">
-  <div class="presenter-header">
-    <div class="presenter-title" id="presenterTitle">スライド</div>
-    <div class="presenter-controls">
-      <button class="ctrl-btn" onclick="prevSlide()">←</button>
-      <div class="slide-counter" id="slideCounter">1 / 1</div>
-      <button class="ctrl-btn" onclick="nextSlide()">→</button>
-      <button class="ctrl-btn" onclick="closePresenter()" style="margin-left:8px;color:#f43f5e">✕</button>
-    </div>
-  </div>
-  <div class="slide-viewport">
-    <iframe id="slideFrame"></iframe>
-  </div>
-  <div class="presenter-footer" id="thumbBar"></div>
-</div>
+<footer>スライドジェネレーター — 文字起こし → Googleスライド 自動変換</footer>
 
 <script>
-// ── グローバル ──────────────────────────────────
-let slidesHtml = [];
-let currentSlide = 0;
-let apiVisible = false;
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxUPOaL7nyMEsTkmV1NfkUjeFww1Gs8EAcsYwJ-2rcCD3cIXbeVaBWQDY4GHVMW62UxUQ/exec';
 
-function toggleApi(){
-  const i=document.getElementById('apiKey');
-  const b=event.target;
-  apiVisible=!apiVisible;
-  i.type=apiVisible?'text':'password';
-  b.textContent=apiVisible?'隠す':'表示';
-}
+let resultUrl = '';
+
 function updateCount(){
-  document.getElementById('charCount').textContent=
+  document.getElementById('charCount').textContent =
     document.getElementById('transcript').value.length.toLocaleString();
 }
+
 function setProgress(p){
   const w=document.getElementById('progressWrap');
   const b=document.getElementById('progressBar');
   if(p===null){w.classList.remove('show');b.style.width='0%'}
   else{w.classList.add('show');b.style.width=p+'%'}
 }
-function setStatus(type,text,spin=false){
+
+function setStatus(type, text, spin=false){
   const box=document.getElementById('statusBox');
-  const icon=document.getElementById('statusIcon');
   box.className='status-box show '+type;
-  icon.style.display=spin?'block':'none';
+  document.getElementById('spinner').style.display=spin?'block':'none';
   document.getElementById('statusText').innerHTML=text;
 }
-function clearStatus(){document.getElementById('statusBox').className='status-box'}
 
-// ── メイン生成 ──────────────────────────────────
+function clearStatus(){
+  document.getElementById('statusBox').className='status-box';
+}
+
 async function generate(){
-  const apiKey=document.getElementById('apiKey').value.trim();
-  const transcript=document.getElementById('transcript').value.trim();
-  const slideCount=document.getElementById('slideCount').value;
-  const theme=document.getElementById('theme').value;
+  const transcript = document.getElementById('transcript').value.trim();
+  const slideCount = document.getElementById('slideCount').value;
+  const tone = document.getElementById('tone').value;
 
-  if(!apiKey){setStatus('error','APIキーを入力してください');return}
-  if(transcript.length<50){setStatus('error','文字起こしを貼り付けてください（50文字以上）');return}
+  if(transcript.length < 50){
+    setStatus('error','文字起こしを貼り付けてください（50文字以上）');
+    return;
+  }
 
-  const btn=document.getElementById('generateBtn');
-  btn.disabled=true;btn.textContent='生成中...';
-  document.getElementById('actionBtns').className='action-btns';
-  clearStatus();setProgress(10);
-
-  const themes={
-    dark:{
-      bg:'#0F1117',surface:'#1A1D27',text:'#F0F2FF',muted:'#8B92B3',
-      accent:'#6366F1',accent2:'#818CF8',border:'#2A2D3E',
-      titleBg:'linear-gradient(135deg,#1A1D27 0%,#0F1117 100%)',
-      headerBg:'#6366F1',cardBg:'rgba(255,255,255,0.04)',cardBorder:'rgba(255,255,255,0.08)',
-      highlight:'#F59E0B',danger:'#F43F5E',success:'#10B981'
-    },
-    light:{
-      bg:'#FAFBFF',surface:'#FFFFFF',text:'#1A1D27',muted:'#6B7280',
-      accent:'#4F46E5',accent2:'#6366F1',border:'#E5E7EB',
-      titleBg:'linear-gradient(135deg,#EEF2FF 0%,#F0F9FF 100%)',
-      headerBg:'#4F46E5',cardBg:'#F9FAFB',cardBorder:'#E5E7EB',
-      highlight:'#D97706',danger:'#DC2626',success:'#059669'
-    },
-    bold:{
-      bg:'#18181B',surface:'#27272A',text:'#FAFAFA',muted:'#A1A1AA',
-      accent:'#F59E0B',accent2:'#FCD34D',border:'#3F3F46',
-      titleBg:'linear-gradient(135deg,#27272A 0%,#18181B 100%)',
-      headerBg:'#F59E0B',cardBg:'rgba(255,255,255,0.05)',cardBorder:'rgba(255,255,255,0.1)',
-      highlight:'#6366F1',danger:'#F43F5E',success:'#10B981'
-    }
-  };
-  const T=themes[theme];
-
-  const systemPrompt=`あなたはプレゼンデザイナーです。会議の文字起こしを分析し、各スライドをHTML+CSSで出力します。
-
-## 出力形式（JSONのみ）
-[
-  {"id":1,"title":"タイトル","html":"<HTMLコード>"},
-  ...
-]
-
-## JSON出力の絶対ルール（最重要）
-- htmlフィールド内の文字列はすべてJSONエスケープする
-- 二重引用符 " → \"
-- バックスラッシュ \\ → \\\\
-- 改行 → \\n
-- htmlフィールド内でstyle属性に二重引用符を使わず、シングルクォート ' を使う
-- 例：style='color:red;font-size:48px' ← 正しい
-- 例：style="color:red" ← JSON内では使用禁止
-
-## HTMLスライドのルール
-- 外側のdivに style='width:1280px;height:720px;overflow:hidden;position:relative'
-- フォント: <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');*{font-family:"Noto Sans JP",sans-serif;box-sizing:border-box;margin:0;padding:0}</style>
-- スライドごとにレイアウトを変える（タイトル/2カラム/数字強調/カードグリッド/まとめ）
-- 背景色: ${T.bg}、テキスト: ${T.text}、アクセント: ${T.accent}
-- 見出し48px、本文20px、余白60px、スライド番号を右下に表示
-- 1スライド3〜4ポイントまで
-- JavaScript不使用（HTMLとCSSのみ）
-
-## 構成（${slideCount}枚）
-- 1枚目: タイトルスライド
-- 最後: まとめ
-- 中間: 多様なレイアウト
-
-JSONのみ返す。説明文なし。`;
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  document.getElementById('resultCard').className = 'result-card';
+  clearStatus();
+  setProgress(10);
 
   try{
     setProgress(20);
-    setStatus('loading','Claude AIが文字起こしを分析中...',true);
+    setStatus('loading', 'Claude AIが文字起こしを分析中...', true);
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:8000,
-        system:systemPrompt,
-        messages:[{role:'user',content:`以下の会議の文字起こしからスライドを作成してください:\n\n${transcript}`}]
-      })
+    // プログレスを擬似的に進める
+    let prog = 20;
+    const timer = setInterval(()=>{
+      prog = Math.min(prog + 3, 85);
+      setProgress(prog);
+    }, 1000);
+
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ transcript, slideCount, tone }),
+      headers: { 'Content-Type': 'text/plain' }
     });
 
-    setProgress(70);
+    clearInterval(timer);
 
-    if(!res.ok){
-      const e=await res.json().catch(()=>({}));
-      throw new Error(e.error?.message||`APIエラー: ${res.status}`);
+    const data = await res.json();
+
+    if(!data.success){
+      throw new Error(data.error || '生成に失敗しました');
     }
-
-    const data=await res.json();
-    const raw=data.content?.[0]?.text||'';
-
-    setProgress(85);
-    setStatus('loading','スライドを構築中...',true);
-
-    // JSON抽出・修復
-    let match=raw.match(/\[[\s\S]*\]/);
-    if(!match)throw new Error('スライドデータの解析に失敗しました。');
-
-    let jsonStr=match[0];
-
-    // よくある破損パターンを修正
-    // 1. HTMLの二重引用符をエスケープ
-    // 2. 不正な改行を除去
-    let parsed;
-    try{
-      parsed=JSON.parse(jsonStr);
-    }catch(e1){
-      // 修復試行：htmlフィールドの中身を個別に取り出す
-      try{
-        const slides=[];
-        const slidePattern=/\{\s*"id"\s*:\s*(\d+)\s*,\s*"title"\s*:\s*"([^"]*?)"\s*,\s*"html"\s*:\s*"([\s\S]*?)"\s*\}/g;
-        let m;
-        // より安全な方法：RAWテキストから直接パース
-        const cleanJson=jsonStr
-          .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
-          .replace(/\\'/g,"'");
-        parsed=JSON.parse(cleanJson);
-      }catch(e2){
-        // 最終手段：Claudeに再生成を依頼するメッセージ
-        throw new Error('スライドデータの解析に失敗しました。もう一度「スライドを生成する」を押してください。');
-      }
-    }
-
-    slidesHtml=parsed;
-    currentSlide=0;
 
     setProgress(100);
+    resultUrl = data.url;
+
     setTimeout(()=>{
       setProgress(null);
-      setStatus('success',`✓ <strong>${slidesHtml.length}枚</strong>のスライドが生成されました`);
-      document.getElementById('actionBtns').className='action-btns show';
-    },300);
+      clearStatus();
+      document.getElementById('openBtn').href = resultUrl;
+      document.getElementById('resultCard').className = 'result-card show';
+    }, 400);
 
-  }catch(e){
+  }catch(err){
     setProgress(null);
-    setStatus('error',`エラー：${e.message}`);
-    console.error(e);
+    setStatus('error', 'エラーが発生しました：' + err.message);
+    console.error(err);
   }finally{
-    btn.disabled=false;btn.textContent='✦ スライドを生成する';
+    btn.disabled = false;
+    btn.textContent = '✦ Googleスライドを自動生成する';
   }
 }
 
-// ── プレゼンター ────────────────────────────────
-function buildThumbBar(){
-  const bar=document.getElementById('thumbBar');
-  bar.innerHTML='';
-  slidesHtml.forEach((_,i)=>{
-    const b=document.createElement('button');
-    b.className='thumb-btn'+(i===currentSlide?' active':'');
-    b.onclick=()=>goTo(i);
-    bar.appendChild(b);
+function copyUrl(){
+  if(!resultUrl) return;
+  navigator.clipboard.writeText(resultUrl).then(()=>{
+    const btn = event.target;
+    btn.textContent = 'コピーしました！';
+    setTimeout(()=>btn.textContent='URLをコピー', 2000);
   });
-}
-
-function showSlide(idx){
-  if(!slidesHtml.length)return;
-  currentSlide=Math.max(0,Math.min(idx,slidesHtml.length-1));
-  const frame=document.getElementById('slideFrame');
-  const slide=slidesHtml[currentSlide];
-
-  // iframeにHTMLを書き込む
-  const doc=frame.contentDocument||frame.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>*{margin:0;padding:0;box-sizing:border-box}
-  html,body{width:1280px;height:720px;overflow:hidden}</style>
-  </head><body>${slide.html}</body></html>`);
-  doc.close();
-
-  document.getElementById('slideCounter').textContent=`${currentSlide+1} / ${slidesHtml.length}`;
-  document.getElementById('presenterTitle').textContent=slide.title||'';
-
-  // サムネイル更新
-  document.querySelectorAll('.thumb-btn').forEach((b,i)=>{
-    b.classList.toggle('active',i===currentSlide);
-  });
-}
-
-function openPresenter(){
-  if(!slidesHtml.length)return;
-  document.getElementById('presenter').classList.add('open');
-  buildThumbBar();
-  showSlide(0);
-  // キーボード操作
-  document.addEventListener('keydown',onKey);
-}
-function closePresenter(){
-  document.getElementById('presenter').classList.remove('open');
-  document.removeEventListener('keydown',onKey);
-}
-function onKey(e){
-  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')nextSlide();
-  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();
-  if(e.key==='Escape')closePresenter();
-}
-function nextSlide(){showSlide(currentSlide+1)}
-function prevSlide(){showSlide(currentSlide-1)}
-function goTo(idx){showSlide(idx)}
-
-// ── PDFダウンロード ────────────────────────────
-function downloadPdf(){
-  if(!slidesHtml.length)return;
-
-  const allHtml=slidesHtml.map((s,i)=>`
-    <div class="slide-page">
-      <div class="slide-inner">${s.html}</div>
-    </div>
-  `).join('');
-
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box}
-
-    /* A4横向き 297×210mm */
-    @page{
-      size: A4 landscape;
-      margin: 0;
-    }
-
-    html,body{
-      margin:0;padding:0;
-      background:#fff;
-    }
-
-    .slide-page{
-      width:297mm;
-      height:210mm;
-      overflow:hidden;
-      page-break-after:always;
-      page-break-inside:avoid;
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:#000;
-    }
-
-    .slide-page:last-child{
-      page-break-after:auto;
-    }
-
-    /* 1280×720を297mm×210mmにスケール */
-    .slide-inner{
-      width:1280px;
-      height:720px;
-      transform-origin:top left;
-      transform:scale(calc(297mm / 1280px));
-      /* JSでscaleを動的に設定 */
-      position:absolute;
-      top:0;left:0;
-    }
-
-    @media print{
-      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-      .slide-page{page-break-after:always}
-    }
-  </style>
-  </head><body>${allHtml}
-  <script>
-    // 297mm = 1122px（96dpi）、210mm = 794px として計算
-    window.onload=()=>{
-      const pages=document.querySelectorAll('.slide-page');
-      pages.forEach(page=>{
-        const inner=page.querySelector('.slide-inner');
-        const pw=page.offsetWidth;
-        const ph=page.offsetHeight;
-        const scaleX=pw/1280;
-        const scaleY=ph/720;
-        const scale=Math.min(scaleX,scaleY);
-        inner.style.transform='scale('+scale+')';
-        inner.style.transformOrigin='top left';
-        // センタリング
-        const offsetX=(pw-1280*scale)/2;
-        const offsetY=(ph-720*scale)/2;
-        inner.style.left=offsetX+'px';
-        inner.style.top=offsetY+'px';
-      });
-      setTimeout(()=>window.print(),800);
-    };
-  <\/script>
-  </body></html>`);
-  win.document.close();
 }
 </script>
 </body>
