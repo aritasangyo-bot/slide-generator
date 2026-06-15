@@ -208,8 +208,8 @@ main{flex:1;max-width:860px;width:100%;margin:0 auto;padding:36px 24px 80px;disp
       <div class="option-group">
         <label>スライド枚数</label>
         <select class="option-select" id="slideCount">
-          <option value="5">5枚（簡潔）</option>
-          <option value="8" selected>8枚（標準）</option>
+          <option value="5" selected>5枚（簡潔）</option>
+          <option value="8">8枚（標準）</option>
           <option value="12">12枚（詳細）</option>
         </select>
       </div>
@@ -327,61 +327,28 @@ async function generate(){
   };
   const T=themes[theme];
 
-  const systemPrompt=`あなたはプロのプレゼンテーションデザイナー兼フロントエンドエンジニアです。
-会議の文字起こしを分析し、各スライドを完全なHTML+CSSで出力します。
+  const systemPrompt=`あなたはプレゼンデザイナーです。会議の文字起こしを分析し、各スライドをHTML+CSSで出力します。
 
-## 出力形式
-必ずJSON配列のみを返してください：
+## 出力形式（JSONのみ）
 [
-  {"id":1,"title":"スライドタイトル","html":"<完全なHTMLスライドコード>"},
-  {"id":2,"title":"スライドタイトル","html":"<完全なHTMLスライドコード>"},
+  {"id":1,"title":"タイトル","html":"<HTMLコード>"},
   ...
 ]
 
-## 各スライドのHTMLについて
-- 1280×720pxの固定サイズで設計（style="width:1280px;height:720px"）
-- 外部フォント: @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700&display=swap');
-- スライドのコンテンツに応じてレイアウトを変える（重要！）
-- 毎回同じレイアウトにしない。内容に合わせて以下から選択：
-  1. タイトルスライド：大きなタイトル＋サブタイトル＋装飾
-  2. 2カラムレイアウト：左右に情報を並べる
-  3. 大きな数字強調：KPIや実績を中央に大きく
-  4. アイコングリッド：3〜4つのポイントをカードで並列表示
-  5. タイムライン：左から右への流れ・プロセス
-  6. 課題→解決：左に問題、右に解決策
-  7. 人物・担当者紹介：名前と役割を視覚的に
-  8. まとめ：箇条書きをデザインよく並べる
+## HTMLスライドのルール
+- 1280×720px固定（style="width:1280px;height:720px;overflow:hidden;position:relative"）
+- フォント: <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');*{font-family:"Noto Sans JP",sans-serif}</style>
+- スライドごとにレイアウトを変える（タイトル/2カラム/数字強調/カードグリッド/まとめ）
+- 背景色: ${T.bg}、テキスト: ${T.text}、アクセント: ${T.accent}
+- 見出し48px、本文20px、余白60px、スライド番号を右下に表示
+- 1スライド3〜4ポイントまで
 
-## カラーテーマ（必ず使用）
-- 背景: ${T.bg}
-- サーフェス: ${T.surface}
-- テキスト: ${T.text}
-- ミュート: ${T.muted}
-- アクセント: ${T.accent}
-- アクセント2: ${T.accent2}
-- ボーダー: ${T.border}
-- タイトル背景: ${T.titleBg}
-- カード背景: ${T.cardBg}
-- カードボーダー: ${T.cardBorder}
-- ハイライト: ${T.highlight}
-- 危険/課題: ${T.danger}
-- 成功/良い: ${T.success}
+## 構成（${slideCount}枚）
+- 1枚目: タイトルスライド
+- 最後: まとめ
+- 中間: 多様なレイアウト
 
-## デザインルール
-- フォント：Noto Sans JP（日本語）/ Inter（数字・英語）
-- スライドごとにビジュアル的なアクセントを必ず入れる（グラデーション、図形、アイコン風文字など）
-- 情報密度：1スライドに詰め込みすぎない（ポイントは3〜5個まで）
-- テキストサイズ：見出し40〜56px、本文18〜24px、キャプション14〜16px
-- 余白を大切に：padding最低60px
-- スライド番号を右下に小さく表示（${T.muted}色）
-
-## 枚数・構成
-- 合計${slideCount}枚
-- 1枚目：必ずタイトルスライド
-- 最後：まとめ or 次のアクション
-- 中間：内容に応じて多様なレイアウトを使い分ける
-
-JSONのみ返す。説明文・マークダウン記法不要。`;
+JSONのみ返す。`;
 
   try{
     setProgress(20);
@@ -397,7 +364,7 @@ JSONのみ返す。説明文・マークダウン記法不要。`;
       },
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
-        max_tokens:16000,
+        max_tokens:8000,
         system:systemPrompt,
         messages:[{role:'user',content:`以下の会議の文字起こしからスライドを作成してください:\n\n${transcript}`}]
       })
@@ -501,10 +468,9 @@ function goTo(idx){showSlide(idx)}
 function downloadPdf(){
   if(!slidesHtml.length)return;
 
-  // 全スライドを縦に並べたHTMLを生成してprint
   const allHtml=slidesHtml.map((s,i)=>`
-    <div style="width:1280px;height:720px;overflow:hidden;page-break-after:${i<slidesHtml.length-1?'always':'auto'};position:relative">
-      ${s.html}
+    <div class="slide-page">
+      <div class="slide-inner">${s.html}</div>
     </div>
   `).join('');
 
@@ -513,12 +479,74 @@ function downloadPdf(){
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700&display=swap');
     *{margin:0;padding:0;box-sizing:border-box}
-    @page{size:1280px 720px;margin:0}
-    body{width:1280px}
-    @media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+    /* A4横向き 297×210mm */
+    @page{
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    html,body{
+      margin:0;padding:0;
+      background:#fff;
+    }
+
+    .slide-page{
+      width:297mm;
+      height:210mm;
+      overflow:hidden;
+      page-break-after:always;
+      page-break-inside:avoid;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#000;
+    }
+
+    .slide-page:last-child{
+      page-break-after:auto;
+    }
+
+    /* 1280×720を297mm×210mmにスケール */
+    .slide-inner{
+      width:1280px;
+      height:720px;
+      transform-origin:top left;
+      transform:scale(calc(297mm / 1280px));
+      /* JSでscaleを動的に設定 */
+      position:absolute;
+      top:0;left:0;
+    }
+
+    @media print{
+      *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+      .slide-page{page-break-after:always}
+    }
   </style>
   </head><body>${allHtml}
-  <script>window.onload=()=>{window.print()}<\/script>
+  <script>
+    // 297mm = 1122px（96dpi）、210mm = 794px として計算
+    window.onload=()=>{
+      const pages=document.querySelectorAll('.slide-page');
+      pages.forEach(page=>{
+        const inner=page.querySelector('.slide-inner');
+        const pw=page.offsetWidth;
+        const ph=page.offsetHeight;
+        const scaleX=pw/1280;
+        const scaleY=ph/720;
+        const scale=Math.min(scaleX,scaleY);
+        inner.style.transform='scale('+scale+')';
+        inner.style.transformOrigin='top left';
+        // センタリング
+        const offsetX=(pw-1280*scale)/2;
+        const offsetY=(ph-720*scale)/2;
+        inner.style.left=offsetX+'px';
+        inner.style.top=offsetY+'px';
+      });
+      setTimeout(()=>window.print(),800);
+    };
+  <\/script>
   </body></html>`);
   win.document.close();
 }
