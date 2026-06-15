@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スライドジェネレーター</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E2E6EA;
+    --ink: #1A1F2E;
+    --muted: #6B7280;
+    --accent: #2563EB;
+    --accent-light: #EFF6FF;
+    --success: #059669;
+    --danger: #DC2626;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── ヘッダー ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── メインレイアウト ── */
+  main {
+    flex: 1;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* ── セクションカード ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* ── APIキー入力 ── */
+  .api-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .api-input {
+    flex: 1;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .api-input:focus { border-color: var(--accent); background: white; }
+
+  .toggle-btn {
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: border-color .15s;
+  }
+  .toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── 文字起こしテキストエリア ── */
+  .transcript-area {
+    width: 100%;
+    min-height: 220px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.75;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--ink);
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+    background: var(--bg);
+  }
+  .transcript-area:focus { border-color: var(--accent); background: white; }
+  .transcript-area::placeholder { color: #B0B8C4; }
+
+  .char-count {
+    text-align: right;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* ── オプション行 ── */
+  .options-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .option-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .option-select {
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+  }
+  .option-select:focus { border-color: var(--accent); }
+
+  /* ── 生成ボタン ── */
+  .generate-btn {
+    width: 100%;
+    height: 52px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background .15s, transform .1s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .generate-btn:hover:not(:disabled) { background: #1D4ED8; }
+  .generate-btn:active:not(:disabled) { transform: scale(0.99); }
+  .generate-btn:disabled { background: #93C5FD; cursor: not-allowed; }
+
+  .btn-icon { font-size: 18px; }
+
+  /* ── ステータス ── */
+  .status-box {
+    display: none;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .status-box.show { display: flex; }
+  .status-box.loading { background: var(--accent-light); color: var(--accent); }
+  .status-box.success { background: #ECFDF5; color: var(--success); }
+  .status-box.error { background: #FEF2F2; color: var(--danger); }
+
+  .status-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .status-text { line-height: 1.6; }
+
+  /* ── スピナー ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  /* ── プログレスバー ── */
+  .progress-wrap {
+    display: none;
+    background: var(--border);
+    border-radius: 99px;
+    height: 4px;
+    overflow: hidden;
+  }
+  .progress-wrap.show { display: block; }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── ダウンロードボタン ── */
+  .download-btn {
+    display: none;
+    width: 100%;
+    height: 52px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background .15s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .download-btn.show { display: flex; }
+  .download-btn:hover { background: #047857; }
+
+  /* ── スライドプレビュー ── */
+  .preview-section { display: none; }
+  .preview-section.show { display: block; }
+
+  .preview-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .slide-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .slide-num {
+    width: 26px;
+    height: 26px;
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .slide-content .slide-heading {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .slide-content .slide-points {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ── フッター ── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+    </div>
+    スライドジェネレーター
+  </div>
+  <span class="badge">Powered by Claude AI</span>
+</header>
+
+<main>
+
+  <!-- APIキー -->
+  <div class="card">
+    <div class="card-label">API設定</div>
+    <div class="api-row">
+      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="toggle-btn" onclick="toggleApiVisibility()">表示</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+      APIキーはブラウザ内のみで使用し、外部には送信されません（Anthropic API除く）
+    </div>
+  </div>
+
+  <!-- 文字起こし入力 -->
+  <div class="card">
+    <div class="card-label">会議の文字起こし</div>
+    <textarea
+      class="transcript-area"
+      id="transcript"
+      placeholder="ここに会議の文字起こしテキストを貼り付けてください。
+
+例：
+山田：今期の売上は前年比120%で、特に関西エリアの伸びが顕著です。
+佐藤：要因としては新規顧客の獲得が大きく、特に製造業向けの提案が効いています。
+山田：来期は関東エリアにも同様のアプローチを展開したいと思います。
+..."
+      oninput="updateCharCount()"
+    ></textarea>
+    <div class="char-count"><span id="charCount">0</span> 文字</div>
+
+    <div class="options-row">
+      <div class="option-group">
+        <label>スライド枚数（目安）</label>
+        <select class="option-select" id="slideCount">
+          <option value="5">5枚（簡潔）</option>
+          <option value="8" selected>8枚（標準）</option>
+          <option value="12">12枚（詳細）</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label>資料のトーン</label>
+        <select class="option-select" id="tone">
+          <option value="business">ビジネス（標準）</option>
+          <option value="formal">フォーマル（行政・報告）</option>
+          <option value="casual">カジュアル（社内共有）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 生成ボタン -->
+  <button class="generate-btn" id="generateBtn" onclick="generateSlides()">
+    <span class="btn-icon">✦</span>
+    スライドを自動生成する
+  </button>
+
+  <!-- プログレス -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- ステータス -->
+  <div class="status-box" id="statusBox">
+    <div class="status-icon" id="statusIcon"></div>
+    <div class="status-text" id="statusText"></div>
+  </div>
+
+  <!-- プレビュー -->
+  <div class="preview-section" id="previewSection">
+    <div class="card">
+      <div class="preview-title">
+        📋 生成されたスライド構成
+      </div>
+      <div class="slide-list" id="slideList"></div>
+    </div>
+  </div>
+
+  <!-- ダウンロードボタン -->
+  <button class="download-btn" id="downloadBtn" onclick="downloadPptx()">
+    ⬇ PowerPointをダウンロード (.pptx)
+  </button>
+
+</main>
+
+<footer>
+  スライドジェネレーター — 文字起こし → PowerPoint 自動変換ツール
+</footer>
+
+<script>
+// ─── グローバル変数 ───────────────────────────────
+let generatedSlides = null;
+let apiKeyVisible = false;
+
+// ─── APIキー表示切替 ─────────────────────────────
+function toggleApiVisibility() {
+  const input = document.getElementById('apiKey');
+  const btn = event.target;
+  apiKeyVisible = !apiKeyVisible;
+  input.type = apiKeyVisible ? 'text' : 'password';
+  btn.textContent = apiKeyVisible ? '隠す' : '表示';
+}
+
+// ─── 文字数カウント ───────────────────────────────
+function updateCharCount() {
+  const len = document.getElementById('transcript').value.length;
+  document.getElementById('charCount').textContent = len.toLocaleString();
+}
+
+// ─── ステータス表示 ───────────────────────────────
+function setStatus(type, iconHtml, text) {
+  const box = document.getElementById('statusBox');
+  box.className = `status-box show ${type}`;
+  document.getElementById('statusIcon').innerHTML = iconHtml;
+  document.getElementById('statusText').innerHTML = text;
+}
+
+function clearStatus() {
+  document.getElementById('statusBox').className = 'status-box';
+}
+
+// ─── プログレスバー ───────────────────────────────
+function setProgress(pct) {
+  const wrap = document.getElementById('progressWrap');
+  const bar = document.getElementById('progressBar');
+  if (pct === null) {
+    wrap.classList.remove('show');
+    bar.style.width = '0%';
+  } else {
+    wrap.classList.add('show');
+    bar.style.width = pct + '%';
+  }
+}
+
+// ─── メイン：スライド生成 ────────────────────────
+async function generateSlides() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const transcript = document.getElementById('transcript').value.trim();
+  const slideCount = document.getElementById('slideCount').value;
+  const tone = document.getElementById('tone').value;
+
+  // バリデーション
+  if (!apiKey) {
+    setStatus('error', '⚠', 'Anthropic APIキーを入力してください。');
+    return;
+  }
+  if (!transcript || transcript.length < 50) {
+    setStatus('error', '⚠', '文字起こしテキストを貼り付けてください（50文字以上）。');
+    return;
+  }
+
+  // UI初期化
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> AIが構成を考えています...';
+  document.getElementById('downloadBtn').className = 'download-btn';
+  document.getElementById('previewSection').className = 'preview-section';
+  clearStatus();
+  setProgress(10);
+
+  const toneDesc = {
+    business: 'ビジネス標準：簡潔・明確・プロフェッショナルなトーン',
+    formal: 'フォーマル：行政・公式報告に適した丁寧なトーン',
+    casual: 'カジュアル：社内共有向けのわかりやすいトーン'
+  }[tone];
+
+  const systemPrompt = `あなたはプロのプレゼンテーションデザイナーです。会議の文字起こしを分析し、要点を整理してスライド構成をJSONで出力します。
+
+出力形式（必ずこのJSON形式のみを返す）:
+{
+  "title": "プレゼンテーションタイトル",
+  "subtitle": "サブタイトルまたは日付・会議名",
+  "slides": [
+    {
+      "type": "section",
+      "heading": "セクションタイトル",
+      "points": ["ポイント1", "ポイント2", "ポイント3"],
+      "note": "発表者向けメモ（任意）"
+    }
+  ]
+}
+
+typeは以下から選択:
+- "title": タイトルスライド（最初の1枚のみ）
+- "section": 通常コンテンツスライド
+- "summary": まとめスライド（最後の1枚）
+
+ルール:
+- 目安枚数: ${slideCount}枚（タイトル含む）
+- トーン: ${toneDesc}
+- pointsは各スライド2〜5項目
+- 見出しは15文字以内
+- 各ポイントは40文字以内
+- 日本語で出力
+- JSONのみ返す（説明文不要）`;
+
+  const userPrompt = `以下の会議の文字起こしからスライドを作成してください:\n\n${transcript}`;
+
+  try {
+    setProgress(30);
+    setStatus('loading', '<div class="spinner"></div>', 'Claude AIが文字起こしを分析中...');
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    setProgress(70);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `APIエラー: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.content?.[0]?.text || '';
+
+    // JSON抽出
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('スライド構成の解析に失敗しました。');
+
+    generatedSlides = JSON.parse(jsonMatch[0]);
+
+    setProgress(90);
+    setStatus('loading', '<div class="spinner"></div>', 'PowerPointファイルを生成中...');
+
+    // プレビュー表示
+    renderPreview(generatedSlides);
+
+    setProgress(100);
+    setTimeout(() => {
+      setProgress(null);
+      setStatus('success', '✓', `<strong>${generatedSlides.slides.length}枚のスライド</strong>が生成されました。下のボタンからダウンロードできます。`);
+      document.getElementById('downloadBtn').className = 'download-btn show';
+    }, 400);
+
+  } catch (err) {
+    setProgress(null);
+    setStatus('error', '✕', `エラーが発生しました：${err.message}`);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="btn-icon">✦</span> スライドを自動生成する';
+  }
+}
+
+// ─── プレビューレンダリング ───────────────────────
+function renderPreview(data) {
+  const list = document.getElementById('slideList');
+  list.innerHTML = '';
+  data.slides.forEach((slide, i) => {
+    const item = document.createElement('div');
+    item.className = 'slide-item';
+    const points = (slide.points || []).map(p => `・${p}`).join('<br>');
+    item.innerHTML = `
+      <div class="slide-num">${i + 1}</div>
+      <div class="slide-content">
+        <div class="slide-heading">${slide.heading || slide.type}</div>
+        <div class="slide-points">${points}</div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+  document.getElementById('previewSection').className = 'preview-section show';
+}
+
+// ─── PPTXダウンロード ─────────────────────────────
+async function downloadPptx() {
+  if (!generatedSlides) return;
+
+  const btn = document.getElementById('downloadBtn');
+  btn.textContent = '⏳ 生成中...';
+  btn.disabled = true;
+
+  try {
+    const pres = new PptxGenJS();
+    pres.layout = 'LAYOUT_16x9';
+    pres.title = generatedSlides.title || 'プレゼンテーション';
+
+    // カラーパレット
+    const C = {
+      dark:    '1A1F2E',
+      accent:  '2563EB',
+      accentL: 'DBEAFE',
+      white:   'FFFFFF',
+      gray1:   'F7F8FA',
+      gray2:   'E2E6EA',
+      muted:   '6B7280',
+      text:    '1A1F2E',
+    };
+
+    const slides = generatedSlides.slides;
+
+    slides.forEach((slideData, idx) => {
+      const slide = pres.addSlide();
+      const isTitle = slideData.type === 'title' || idx === 0;
+      const isSummary = slideData.type === 'summary';
+
+      if (isTitle) {
+        // ── タイトルスライド ──────────────────────
+        slide.background = { color: C.dark };
+
+        // アクセント矩形（左）
+        slide.addShape(pres.ShapeType.rect, {
+          x: 0.55, y: 1.8, w: 0.08, h: 1.5,
+          fill: { color: C.accent }, line: { color: C.accent }
+        });
+
+        slide.addText(generatedSlides.title || 'プレゼンテーション', {
+          x: 0.8, y: 1.7, w: 8.4, h: 1.0,
+          fontSize: 34, bold: true, color: C.white,
+          fontFace: 'Calibri', valign: 'middle', margin: 0
+        });
+
+        slide.addText(generatedSlides.subtitle || '', {
+          x: 0.8, y: 2.8, w: 8.4, h: 0.55,
+          fontSize: 14, color: 'A0AEC0',
+          fontFace: 'Calibri', margin: 0
+        });
+
+        // スライド番号ヒント
+        slide.addText(`全${slides.length}枚`, {
+          x: 0.8, y: 4.8, w: 4, h: 0.4,
+          fontSize: 11, color: '4B5563', fontFace: 'Calibri', margin: 0
+        });
+
+      } else if (isSummary) {
+        // ── まとめスライド ──────────────────────
+        slide.background = { color: C.accent };
+
+        slide.addText(slideData.heading || 'まとめ', {
+          x: 0.6, y: 0.5, w: 8.8, h: 0.8,
+          fontSize: 28, bold: true, color: C.white,
+          fontFace: 'Calibri', margin: 0
+        });
+
+        const pts = (slideData.points || []);
+        pts.forEach((pt, i) => {
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.6, y: 1.5 + i * 0.9, w: 8.8, h: 0.72,
+            fill: { color: C.white, transparency: 15 },
+            line: { color: C.white, transparency: 50 },
+            rectRadius: 0.06
+          });
+          slide.addText(pt, {
+            x: 1.0, y: 1.55 + i * 0.9, w: 8.0, h: 0.62,
+            fontSize: 13, color: C.white, bold: false,
+            fontFace: 'Calibri', valign: 'middle', margin: 0
+          });
+          // 番号
+          slide.addText(String(i + 1), {
+            x: 0.62, y: 1.57 + i * 0.9, w: 0.3, h: 0.58,
+            fontSize: 11, bold: true, color: C.accent,
+            fontFace: 'Calibri', align: 'center', valign: 'middle', margin: 0
+          });
+        });
+
+      } else {
+        // ── 通常コンテンツスライド ───────────────
+        slide.background = { color: C.white };
+
+        // ヘッダー帯
+        slide.addShape(pres.ShapeType.rect, {
+          x: 0, y: 0, w: 10, h: 1.05,
+          fill: { color: C.gray1 }, line: { color: C.gray2 }
+        });
+
+        slide.addText(slideData.heading || '', {
+          x: 0.5, y: 0.1, w: 8.5, h: 0.85,
+          fontSize: 22, bold: true, color: C.text,
+          fontFace: 'Calibri', valign: 'middle', margin: 0
+        });
+
+        // スライド番号
+        slide.addText(`${idx + 1} / ${slides.length}`, {
+          x: 8.8, y: 0.1, w: 1.0, h: 0.85,
+          fontSize: 10, color: C.muted,
+          fontFace: 'Calibri', align: 'right', valign: 'middle', margin: 0
+        });
+
+        // ポイントカード
+        const pts = (slideData.points || []);
+        const startY = 1.25;
+        const cardH = pts.length <= 3 ? 1.0 : 0.78;
+        const gap = 0.12;
+
+        pts.forEach((pt, i) => {
+          const y = startY + i * (cardH + gap);
+
+          slide.addShape(pres.ShapeType.roundRect, {
+            x: 0.5, y, w: 9.0, h: cardH,
+            fill: { color: C.gray1 },
+            line: { color: C.gray2 },
+            shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 90, opacity: 0.05 },
+            rectRadius: 0.08
+          });
+
+          // アクセントドット
+          slide.addShape(pres.ShapeType.ellipse, {
+            x: 0.78, y: y + cardH / 2 - 0.09,
+            w: 0.18, h: 0.18,
+            fill: { color: C.accent }, line: { color: C.accent }
+          });
+
+          slide.addText(pt, {
+            x: 1.1, y, w: 8.1, h: cardH,
+            fontSize: pts.length <= 3 ? 14 : 13,
+            color: C.text, fontFace: 'Calibri',
+            valign: 'middle', margin: 0
+          });
+        });
+
+        // 発表者メモ
+        if (slideData.note) {
+          slide.addNotes(slideData.note);
+        }
+      }
+    });
+
+    // ファイル名
+    const date = new Date().toLocaleDateString('ja-JP').replace(/\//g, '');
+    const fileName = `slides_${date}.pptx`;
+    await pres.writeFile({ fileName });
+
+  } catch (err) {
+    alert('PowerPointの生成に失敗しました: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.textContent = '⬇ PowerPointをダウンロード (.pptx)';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
